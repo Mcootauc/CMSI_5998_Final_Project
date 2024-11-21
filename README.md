@@ -29,6 +29,10 @@ This project provides valuable insights for travelers by analyzing how weather i
       -argparse
       -time
 ### 3. Configure API Keys
+Create a .env file with your API credentials: 
+OPENWEATHERMAP_API_KEY=your_openweathermap_key
+FOURSQUARE_CLIENT_ID=your_foursquare_id
+FOURSQUARE_CLIENT_SECRET=your_foursquare_secret
 
 
 ## Extensibility & Maintainability
