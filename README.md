@@ -31,4 +31,13 @@ This project provides valuable insights for travelers by analyzing how weather i
 ### 3. Configure API Keys
 
 
+## Extensibility & Maintainability
+Extensible: Easily add new data sources or parameters.
+Maintainable: Modular functions with error handling. Potential issues include API rate limits and data size constraints.
+
+## Run Times
+- Static Mode: <10 seconds
+- Scrape Mode: ~30 seconds
+- Default Mode: ~60 seconds
+
 
