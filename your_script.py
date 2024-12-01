@@ -1,9 +1,12 @@
 import argparse
 import requests
 import json
+from dotenv import load_dotenv
 import os
 import pandas as pd
 from bs4 import BeautifulSoup
+
+load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser(description='Tourism and Cultural Event Insights')
@@ -23,11 +26,11 @@ def fetch_weather_data():
     print("Fetching weather data from OpenWeatherMap...")
     
     # Your OpenWeatherMap API key - replace with your actual key
-    API_KEY = "f78d7dbedca1586e4111c6df97cee2a8"  # Get this from OpenWeatherMap
+    OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")  
     city = "Los Angeles"
     
     # Construct the URL with proper API key
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHERMAP_API_KEY}&units=metric"
     
     try:
         response = requests.get(url)
@@ -52,13 +55,14 @@ def fetch_weather_data():
 
 def get_foursquare_data(limit=5):
     print("Fetching data from Foursquare API...")
+    FOURSQUARE_API_KEY = os.getenv("FOURSQUARE_API_KEY")  
     LA_longitude_latitude = "34.0549,118.2426"
     radius = 100000
     url = f"https://api.foursquare.com/v3/places/search?ll={LA_longitude_latitude}&radius={radius}&limit={limit}"
 
     headers = {
         "accept": "application/json",
-        "Authorization": "fsq36Bc3bgBPQ0UBFV+zbcjOoxVkvhzrUgeEaZBAP0IQ4Hg="  # Replace with your Foursquare API key
+        "Authorization": FOURSQUARE_API_KEY  # Replace with your Foursquare API key
     }
 
     try:
