@@ -53,16 +53,27 @@ def fetch_weather_data():
         print(f"Error fetching weather data: {e}")
         return {}
 
-def get_foursquare_data(limit=5):
-    print("Fetching data from Foursquare API...")
-    FOURSQUARE_API_KEY = os.getenv("FOURSQUARE_API_KEY")  
-    LA_longitude_latitude = "34.0549,118.2426"
-    radius = 100000
-    url = f"https://api.foursquare.com/v3/places/search?ll={LA_longitude_latitude}&radius={radius}&limit={limit}"
+def get_foursquare_data(query="coffee", near="Los Angeles, CA", limit=5):
+    """
+    Fetch data from Foursquare API based on user-provided query and location.
+    
+    Args:
+        query (str): The search query, e.g., "coffee".
+        near (str): The location to search near, e.g., "San Marino, CA".
+        limit (int): The number of results to fetch.
+    
+    Returns:
+        list: A list of dictionaries containing place information.
+    """
+    print(f"Fetching data from Foursquare API for query '{query}' near '{near}'...")
+    FOURSQUARE_API_KEY = os.getenv("FOURSQUARE_API_KEY")
+    
+    # Construct the URL dynamically based on query and near
+    url = f"https://api.foursquare.com/v3/places/search?query={query}&near={near.replace(' ', '%20')}&limit={limit}"
 
     headers = {
         "accept": "application/json",
-        "Authorization": FOURSQUARE_API_KEY  # Replace with your Foursquare API key
+        "Authorization": FOURSQUARE_API_KEY
     }
 
     try:
@@ -73,14 +84,15 @@ def get_foursquare_data(limit=5):
         for place in data.get('results', []):
             places.append({
                 'Name': place.get('name'),
-                'Address': ', '.join(place.get('location', {}).get('formatted_address', '')),
-                'Category': place.get('categories')[0].get('name') if place.get('categories') else 'N/A'
+                'Address': place.get('location', {}).get('formatted_address', 'N/A'),
+                'Category': place.get('categories', [{}])[0].get('name', 'N/A')
             })
         print(f"Successfully fetched {len(places)} places from Foursquare.")
         return places
     except requests.RequestException as e:
         print(f"Error fetching Foursquare data: {e}")
         return []
+
 
 def scrape_events(limit=5):
     """Scrape events from AllEvents.in for Los Angeles."""
@@ -112,6 +124,14 @@ def scrape_events(limit=5):
         return []
 
 def save_static_data(weather_data, foursquare_data, events_data):
+    """
+    Save fetched data to static files.
+    
+    Args:
+        weather_data (dict): Weather data.
+        foursquare_data (list): List of places data.
+        events_data (list): List of events data.
+    """
     print("Saving data to static files...")
     STATIC_DATASET_DIR = 'static_data'
     os.makedirs(STATIC_DATASET_DIR, exist_ok=True)
@@ -125,7 +145,8 @@ def save_static_data(weather_data, foursquare_data, events_data):
     # Save Foursquare data to CSV
     foursquare_file = os.path.join(STATIC_DATASET_DIR, 'foursquare_data.csv')
     df_places = pd.DataFrame(foursquare_data)
-    df_places.to_csv(foursquare_file, index=False)
+    # Ensure proper formatting
+    df_places.to_csv(foursquare_file, index=False, columns=['Name', 'Address', 'Category'])
     print(f"Foursquare data saved to {foursquare_file}")
 
     # Save events data to CSV
