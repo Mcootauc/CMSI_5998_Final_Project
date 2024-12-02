@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 load_dotenv()
 
@@ -25,25 +26,50 @@ def main():
 def fetch_weather_data():
     print("Fetching weather data from OpenWeatherMap...")
     
-    # Your OpenWeatherMap API key - replace with your actual key
-    OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")  
-    city = "Los Angeles"
+    OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
+    if not OPENWEATHERMAP_API_KEY:
+        print("Error: OpenWeatherMap API key not found in environment variables")
+        return {}
+        
+    # Los Angeles coordinates
+    lat = 34.0522
+    lon = -118.2437
     
-    # Construct the URL with proper API key
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHERMAP_API_KEY}&units=metric"
+    # Using v2.5 API endpoint instead of v3.0
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={OPENWEATHERMAP_API_KEY}&units=metric"
     
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
         
         weather_data = response.json()
         
-        # Extract relevant weather information
+        # Extract current weather from first entry
+        current_weather = {
+            'temperature': weather_data['list'][0]['main']['temp'],
+            'description': weather_data['list'][0]['weather'][0]['description'],
+            'humidity': weather_data['list'][0]['main']['humidity'],
+            'wind_speed': weather_data['list'][0]['wind']['speed']
+        }
+        
+        # Extract daily forecast (every 24 hours)
+        daily_forecast = []
+        for day in weather_data['list'][::8]:  # Every 8th entry is a new day (3-hour intervals)
+            daily_forecast.append({
+                'date': datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d'),
+                'temperature': {
+                    'day': day['main']['temp'],
+                    'min': day['main']['temp_min'],
+                    'max': day['main']['temp_max']
+                },
+                'description': day['weather'][0]['description'],
+                'humidity': day['main']['humidity'],
+                'wind_speed': day['wind']['speed']
+            })
+        
         weather_info = {
-            'temperature': weather_data['main']['temp'],
-            'description': weather_data['weather'][0]['description'],
-            'humidity': weather_data['main']['humidity'],
-            'wind_speed': weather_data['wind']['speed']
+            'current': current_weather,
+            'daily_forecast': daily_forecast
         }
         
         print("Successfully fetched weather data")
